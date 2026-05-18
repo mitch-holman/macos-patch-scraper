@@ -11,8 +11,17 @@ APPLE_SECURITY_URL = "https://support.apple.com/en-us/100100"
 OUTPUT_FILE = f"apple_macos_cves_{datetime.now().strftime('%Y-%m-%d')}.csv"
 
 
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    )
+}
+
+
 def fetch_page(url):
-    response = requests.get(url, timeout=30)
+    response = requests.get(url, headers=HEADERS, timeout=30)
     response.raise_for_status()
     return response.text
 
@@ -21,19 +30,28 @@ def extract_macos_links(html):
     soup = BeautifulSoup(html, "html.parser")
 
     links = []
+    seen_urls = set()
 
     for a in soup.find_all("a", href=True):
         text = a.get_text(strip=True)
         href = a["href"]
 
-        if "macOS" in text and ("security" in text.lower() or "About the security content" in text):
+        is_macos = "macOS" in text or "OS X" in text
+        is_security_link = (
+            "support.apple.com" in href
+            or href.startswith("/")
+        )
+
+        if is_macos and is_security_link:
             if href.startswith("/"):
                 href = "https://support.apple.com" + href
 
-            links.append({
-                "title": text,
-                "url": href
-            })
+            if href not in seen_urls:
+                seen_urls.add(href)
+                links.append({
+                    "title": text,
+                    "url": href
+                })
 
     return links
 
