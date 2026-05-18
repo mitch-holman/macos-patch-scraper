@@ -1,9 +1,7 @@
 name: Scrape Apple macOS CVEs
 
 on:
-  schedule:
-    - cron: "0 6 * * 1"  # Every Monday at 6am UTC
-  workflow_dispatch:       # Allow manual runs from the Actions tab
+  workflow_dispatch:
 
 jobs:
   scrape:
