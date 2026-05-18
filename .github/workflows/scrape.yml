@@ -7,9 +7,6 @@ jobs:
   scrape:
     runs-on: ubuntu-latest
 
-    permissions:
-      contents: write
-
     steps:
       - uses: actions/checkout@v4
 
@@ -23,10 +20,8 @@ jobs:
       - name: Run scraper
         run: python scraper.py
 
-      - name: Commit and push CSV
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add apple_macos_cves_*.csv
-          git diff --cached --quiet || git commit -m "chore: update macOS CVE data [$(date -u +%Y-%m-%d)]"
-          git push
+      - name: Upload CSV artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: apple-macos-cves-${{ github.run_id }}
+          path: apple_macos_cves_*.csv
